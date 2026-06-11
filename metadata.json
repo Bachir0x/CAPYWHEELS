@@ -1,0 +1,6 @@
+{
+  "name": "CapyWheels",
+  "description": "Don't lose your momentum! Speed down winding tracks, gather oranges, and dodge bananas as an agile racing capybara, featuring dynamic procedural sound effects and background music loops.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

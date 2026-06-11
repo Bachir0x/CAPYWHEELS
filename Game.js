@@ -3,6 +3,7 @@ import { Track } from './Track.js';
 import { Player } from './Player.js';
 import { Config } from './Config.js';
 import { ParticleSystem } from './Particles.js';
+import { AudioEngine } from './AudioEngine.js';
 
 export class Game {
     constructor() {
@@ -10,6 +11,7 @@ export class Game {
         this.ctx = this.canvas.getContext('2d');
         this.state = 'MENU';
 
+        this.audio = new AudioEngine();
         this.input = new Input();
         this.track = new Track(this.canvas);
         this.particles = new ParticleSystem();
@@ -35,8 +37,49 @@ export class Game {
     init() {
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
-        document.getElementById('startBtn').addEventListener('click', () => this.startGame());
-        document.getElementById('restartBtn').addEventListener('click', () => this.startGame());
+
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        startBtn.addEventListener('click', () => {
+            this.audio.resume();
+            this.startGame();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            this.audio.resume();
+            this.startGame();
+        });
+
+        // Wire up mute/unmute buttons
+        const musicBtn = document.getElementById('musicToggleBtn');
+        const sfxBtn = document.getElementById('sfxToggleBtn');
+
+        if (musicBtn) {
+            musicBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.audio.resume();
+                const enabled = this.audio.toggleMusic();
+                musicBtn.innerText = `🎵 Music: ${enabled ? 'ON' : 'OFF'}`;
+                musicBtn.classList.toggle('muted', !enabled);
+            });
+        }
+
+        if (sfxBtn) {
+            sfxBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.audio.resume();
+                const enabled = this.audio.toggleSFX();
+                sfxBtn.innerText = `🔊 SFX: ${enabled ? 'ON' : 'OFF'}`;
+                sfxBtn.classList.toggle('muted', !enabled);
+            });
+        }
+
+        // Also resume on first tap/click anywhere
+        window.addEventListener('click', () => {
+            this.audio.resume();
+        }, { once: true });
+
         this.loop();
     }
 
@@ -61,6 +104,12 @@ export class Game {
         document.getElementById('screen-overlay').classList.add('hidden');
         document.getElementById('menu-content').classList.add('hidden');
         document.getElementById('gameover-content').classList.add('hidden');
+
+        // Audio controls for start game
+        this.audio.resume();
+        this.audio.startMusic();
+        this.audio.startEngine();
+        this.audio.playStartRide();
     }
 
     handleGameOver() {
@@ -74,6 +123,11 @@ export class Game {
         document.getElementById('gameover-content').classList.remove('hidden');
         document.getElementById('finalScore').innerText = final.toLocaleString();
         document.getElementById('highScore').innerText = this.highScore.toLocaleString();
+
+        // Audio controls for game over
+        this.audio.playCrash();
+        this.audio.stopEngine();
+        this.audio.stopMusic();
     }
 
     _getMultiplier() {
@@ -96,6 +150,8 @@ export class Game {
                     this.score += pts;
                     this.flashColor = '#f39c12';
                     this.flashAlpha = 0.35;
+                    // Play orange pickup SFX with combo pitching
+                    this.audio.playOrange(this.combo);
                     // Burst particles at screen pos
                     this.particles.emit('orange', item.x, item.y, 12);
                     this.particles.emit('star',   item.x, item.y, 5);
@@ -109,6 +165,8 @@ export class Game {
                     this.comboTimer = 0;
                     this.flashColor = '#e74c3c';
                     this.flashAlpha = 0.4;
+                    // Play banana crash SFX
+                    this.audio.playBanana();
                     this.particles.emit('banana', item.x, item.y, 14);
                 }
                 this.track.items.splice(i, 1);
@@ -202,6 +260,9 @@ export class Game {
         if (this.state === 'PLAYING') {
             this.player.update(this.input, this.track);
 
+            // Update procedural engine sound frequency and timbre
+            this.audio.updateEngineSpeed(this.player.speed, this.player.isOffRoad);
+
             // Emit dust particles
             if (this.player.speed > 2 && this.frame % 3 === 0) {
                 const type = this.player.isOffRoad ? 'grass' : 'dust';
@@ -229,6 +290,11 @@ export class Game {
             if (this.comboTimer > 0) {
                 this.comboTimer--;
                 if (this.comboTimer === 0) this.combo = 0;
+            }
+
+            // High momentum alarm if under 25%
+            if (this.player.momentum < 25) {
+                this.audio.playWarning();
             }
 
             if (this.player.momentum <= 0) {
