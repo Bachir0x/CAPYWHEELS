@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="x-ogp-key" content="955b3319-da54-4f51-b86f-4727ab509997" id="ogp-key-meta" />
+    <title>CapyWheels</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="ui">
+        <div id="brand">🛞 CAPYWHEELS</div>
+
+        <div class="hud-item">SCORE</div>
+        <div class="hud-value"><span id="scoreDisplay">000000</span> <span id="multBadge" class="hidden">×1</span></div>
+
+        <div class="hud-item">DISTANCE</div>
+        <div class="hud-value"><span id="distDisplay">0m</span></div>
+
+        <div class="hud-item">MOMENTUM</div>
+        <div class="bar-container">
+            <div id="momentumBar"></div>
+        </div>
+    </div>
+
+    <!-- Combo popup -->
+    <div id="comboDisplay" class="hidden"></div>
+
+    <!-- Touch hint (mobile only) -->
+    <div id="touchHint">← STEER &nbsp;|&nbsp; TAP CENTER = GAS &nbsp;|&nbsp; STEER →</div>
+
+    <!-- Overlay Screens -->
+    <div id="screen-overlay" class="overlay">
+
+        <!-- Main Menu -->
+        <div id="menu-content" class="content">
+            <h1>CAPYWHEELS</h1>
+            <p class="subtitle">Don't lose your momentum.<br>Grab 🍊 Oranges. Dodge 🍌 Bananas.</p>
+            <button id="startBtn">START RIDE</button>
+            <div class="controls-hint">
+                <kbd>W</kbd> / <kbd>↑</kbd> Throttle &nbsp;
+                <kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> Steer &nbsp;
+                <kbd>S</kbd> / <kbd>↓</kbd> Brake
+            </div>
+        </div>
+
+        <!-- Game Over -->
+        <div id="gameover-content" class="content hidden">
+            <h1 class="danger">CRASHED!</h1>
+            <p class="subtitle">Your momentum bottomed out.</p>
+            <div class="score-line">Score: <span id="finalScore">0</span></div>
+            <div class="highscore-line">Best: <span id="highScore">0</span></div>
+            <button id="restartBtn">RIDE AGAIN</button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { Game } from './js/Game.js';
+        window.addEventListener('DOMContentLoaded', () => {
+            const game = new Game();
+            game.init();
+        });
+    </script>
+</body>
+</html>
